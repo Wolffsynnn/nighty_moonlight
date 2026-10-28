@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Iphax — Pub</title>
+<title>Iphax — Pub Animée</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body { height:100%; background:#05070d; overflow:hidden; font-family:'Segoe UI',system-ui,sans-serif; }
@@ -11,7 +11,7 @@
   /* Cadre vertical 9:16 centré */
   #stage {
     position:relative;
-    width:min(100vw, 56.25vh);   /* ratio 9:16 */
+    width:min(100vw, 56.25vh);
     height:min(177.78vw, 100vh);
     margin:auto;
     top:50%; transform:translateY(-50%);
@@ -28,17 +28,27 @@
     text-align:center; padding:8% 10%;
     pointer-events:none;
   }
+  
+  /* Nouvelle animation fluide */
   .scene {
     position:absolute; inset:0;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     padding:8% 10%; text-align:center;
-    opacity:0; transition:opacity 1s ease;
+    opacity:0; 
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
   }
-  .scene.active { opacity:1; }
+  .scene.active {
+    opacity:1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
 
   .scene h1, .scene h2 {
-    font-weight:900; line-height:1.05;
+    font-weight:900; line-height:1.1;
     color:#fff; letter-spacing:-1px;
     text-shadow:0 4px 30px rgba(0,0,0,.6);
   }
@@ -46,32 +56,39 @@
   .scene h2 { font-size:clamp(22px, 6vw, 48px); }
   .scene p {
     margin-top:6%; font-size:clamp(14px, 3.6vw, 22px);
-    color:rgba(255,255,255,.85); line-height:1.5;
-    max-width:90%;
+    color:rgba(255,255,255,.85); line-height:1.6;
+    max-width:95%;
   }
   .accent { color:#00ff9d; }
-  .warm { color:#ffb86b; }
+  
+  /* Bouton Lien Web App */
+  .link-btn {
+    display:inline-block;
+    margin-top:10%;
+    padding:14px 28px;
+    background:#00ff9d;
+    color:#05070d;
+    text-decoration:none;
+    font-weight:800;
+    font-size:clamp(14px, 3.5vw, 18px);
+    border-radius:50px;
+    transition:0.3s;
+    box-shadow:0 0 20px rgba(0,255,157,0.4);
+  }
+  .link-btn:hover {
+    transform:scale(1.05);
+    box-shadow:0 0 30px rgba(0,255,157,0.8);
+  }
 
-  /* Petit label de marque */
+  /* Marque en haut */
   .brand {
     position:absolute; top:6%; left:0; right:0;
     text-align:center; font-weight:800; letter-spacing:4px;
     font-size:clamp(11px, 2.6vw, 16px);
-    color:rgba(255,255,255,.5); z-index:5;
-    opacity:0; transition:opacity .8s;
+    color:rgba(255,255,255,.6); z-index:5;
+    opacity:0; transition:opacity 1s;
   }
   .brand.show { opacity:1; }
-
-  /* Barre de progression scènes */
-  .progress {
-    position:absolute; bottom:4%; left:50%; transform:translateX(-50%);
-    display:flex; gap:8px; z-index:5;
-  }
-  .dot {
-    width:8px; height:8px; border-radius:50%;
-    background:rgba(255,255,255,.25); transition:.4s;
-  }
-  .dot.on { background:#00ff9d; box-shadow:0 0 12px #00ff9d; }
 </style>
 </head>
 <body>
@@ -80,27 +97,36 @@
   <div class="brand" id="brand">IPHAX</div>
 
   <div class="text-layer">
+    <!-- Slide 1 -->
     <div class="scene active" data-scene="0">
       <h1>Et si parler<br>n'était pas<br>un <span class="accent">luxe</span> ?</h1>
     </div>
+    
+    <!-- Slide 2 (Ralenti) -->
     <div class="scene" data-scene="1">
       <h2>Le silence,<br>ça pèse.</h2>
       <p>Les mots qu'on garde pour soi finissent par peser plus lourd que tout.</p>
     </div>
+    
+    <!-- Slide 3 (Phrase améliorée) -->
     <div class="scene" data-scene="2">
       <h2>L'aide est un <span class="accent">droit</span>,<br>pas un luxe.</h2>
+      <p>Personne ne devrait avoir à choisir entre se taire et souffrir.</p>
     </div>
+    
+    <!-- Slide 4 (Ralenti) -->
     <div class="scene" data-scene="3">
       <h2><span class="accent">Iphax</span></h2>
-      <p>Le collectif d'écoute en ligne.<br>Des services pédiatriques pensés pour les jeunes.</p>
+      <p>Le collectif d'écoute en ligne.<br>Des services pédiatriques pensés pour les jeunes, par des professionnels à l'écoute.</p>
     </div>
+    
+    <!-- Slide 5 (Avec Lien) -->
     <div class="scene" data-scene="4">
       <h2>Rejoins <span class="accent">Iphax</span>.</h2>
       <p>Parler, c'est déjà avancer.</p>
+      <a href="https://Iphax-fr.vercel.app" target="_blank" class="link-btn">Iphax-fr.vercel.app →</a>
     </div>
   </div>
-
-  <div class="progress" id="progress"></div>
 </div>
 
 <script>
@@ -125,9 +151,8 @@ const frag = `
 precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
-uniform float u_mood;   // 0 = froid, 1 = chaud/lumineux
+uniform float u_mood; 
 
-// bruit simplex simplifié
 vec2 hash(vec2 p){ p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))); return -1.0+2.0*fract(sin(p)*43758.5453); }
 float noise(vec2 p){
   const float K1=0.366025404, K2=0.5*(sqrt(3.0)-1.0);
@@ -152,15 +177,13 @@ void main(){
   vec2 p = uv*3.0;
   float t = u_time*0.25;
 
-  // fluide organique mouvant
   vec2 q = vec2(fbm(p+vec2(0.0,t)), fbm(p+vec2(5.2,1.3)-t));
   vec2 r = vec2(fbm(p+4.0*q+vec2(1.7,9.2)+0.15*t), fbm(p+4.0*q+vec2(8.3,2.8)-0.126*t));
   float f = fbm(p+4.0*r);
 
-  // palettes selon l'ambiance
   vec3 cold = vec3(0.10,0.18,0.38);
   vec3 cold2= vec3(0.05,0.35,0.45);
-  vec3 warm = vec3(0.00,1.00,0.61);   // #00ff9d
+  vec3 warm = vec3(0.00,1.00,0.61); 
   vec3 warm2= vec3(0.60,0.20,0.55);
 
   vec3 colA = mix(cold, cold2, f);
@@ -168,11 +191,9 @@ void main(){
   vec3 col  = mix(colA, colB, u_mood);
 
   col *= (0.55 + 0.9*f);
-  // halo central doux
   float d = distance(uv, vec2(0.5));
   col += smoothstep(0.6,0.0,d)*0.15*mix(vec3(0.2,0.3,0.6),warm,u_mood);
 
-  // vignette
   col *= smoothstep(0.95,0.35,d);
   gl_FragColor = vec4(col,1.0);
 }
@@ -208,7 +229,7 @@ let mood = 0, moodTarget = 0;
 
 function render(now){
   const t = (now - start)/1000;
-  mood += (moodTarget - mood)*0.02;   // transition douce du shader
+  mood += (moodTarget - mood)*0.02; 
   gl.uniform2f(uRes, canvas.width, canvas.height);
   gl.uniform1f(uTime, t);
   gl.uniform1f(uMood, mood);
@@ -217,33 +238,37 @@ function render(now){
 }
 requestAnimationFrame(render);
 
-/* ============ SÉQUENÇAGE DES SCÈNES ============ */
+/* ============ SÉQUENÇAGE FLUIDE ============ */
 const scenes = [...document.querySelectorAll('.scene')];
 const brand  = document.getElementById('brand');
-const progress = document.getElementById('progress');
-scenes.forEach((_,i)=>{
-  const d = document.createElement('div');
-  d.className = 'dot' + (i===0?' on':'');
-  progress.appendChild(d);
-});
-const dots = [...document.querySelectorAll('.dot')];
 
-// Durée de chaque scène (ms)
-const DURATIONS = [3500, 4500, 4000, 5500, 4000];
-// Ambiance shader par scène (0=froid, 1=chaud/lumineux)
+// Durées ajustées (en millisecondes) - Plus long pour la lecture
+const DURATIONS = [4000, 6500, 6500, 7500, 6000]; 
 const MOODS     = [0.15, 0.05, 0.6, 0.85, 1.0];
 
 let current = 0;
 
 function showScene(i){
-  scenes.forEach((s,k)=> s.classList.toggle('active', k===i));
-  dots.forEach((d,k)=> d.classList.toggle('on', k===i));
+  // Retire la classe active de toutes les scènes
+  scenes.forEach((s) => s.classList.remove('active'));
+  
+  // Ajoute la classe active à la scène actuelle
+  scenes[i].classList.add('active');
+  
+  // Ajuste la couleur du shader en douceur
   moodTarget = MOODS[i];
-  brand.classList.toggle('show', i>=3);   // marque visible à partir de la scène Iphax
-  current = i;
-  setTimeout(()=> showScene((i+1)%scenes.length), DURATIONS[i]);
+  
+  // Affiche le logo Iphax à partir de la scène 4
+  brand.classList.toggle('show', i>=3); 
+
+  // Passe à la scène suivante après la durée définie
+  setTimeout(()=> {
+    showScene((i+1)%scenes.length);
+  }, DURATIONS[i]);
 }
-showScene(0);
+
+// Lancement
+setTimeout(() => showScene(0), 100);
 </script>
 </body>
 </html>
