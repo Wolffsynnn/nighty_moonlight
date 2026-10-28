@@ -2,482 +2,248 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Nighty — Saison 1 : NIGHTMARES</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iphax — Pub</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #000;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-  }
-  svg { width: 100vw; height: 100vh; display: block; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; background:#05070d; overflow:hidden; font-family:'Segoe UI',system-ui,sans-serif; }
 
-  /* ============ CIEL PULSANT ============ */
-  .sky-pulse { animation: skyPulse 6s ease-in-out infinite; }
-  @keyframes skyPulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.88; }
+  /* Cadre vertical 9:16 centré */
+  #stage {
+    position:relative;
+    width:min(100vw, 56.25vh);   /* ratio 9:16 */
+    height:min(177.78vw, 100vh);
+    margin:auto;
+    top:50%; transform:translateY(-50%);
+    overflow:hidden;
+    background:#05070d;
   }
+  canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
 
-  /* ============ BROUILLARD ============ */
-  .fog-1 { animation: fogMove1 30s linear infinite; }
-  .fog-2 { animation: fogMove2 40s linear infinite; }
-  .fog-3 { animation: fogMove1 50s linear infinite reverse; }
-  .fog-4 { animation: fogMove2 35s linear infinite reverse; }
-  @keyframes fogMove1 {
-    0%   { transform: translateX(-300px); }
-    100% { transform: translateX(300px); }
+  /* Couche texte */
+  .text-layer {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; padding:8% 10%;
+    pointer-events:none;
   }
-  @keyframes fogMove2 {
-    0%   { transform: translateX(250px); }
-    100% { transform: translateX(-250px); }
+  .scene {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:8% 10%; text-align:center;
+    opacity:0; transition:opacity 1s ease;
   }
+  .scene.active { opacity:1; }
 
-  /* ============ LUNE QUI MONTE ============ */
-  .moon-rise {
-    animation: moonRise 5s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
-    transform: translateY(900px);
-    opacity: 0;
+  .scene h1, .scene h2 {
+    font-weight:900; line-height:1.05;
+    color:#fff; letter-spacing:-1px;
+    text-shadow:0 4px 30px rgba(0,0,0,.6);
   }
-  @keyframes moonRise {
-    0%   { transform: translateY(900px); opacity: 0; }
-    15%  { opacity: 1; }
-    100% { transform: translateY(0); opacity: 1; }
+  .scene h1 { font-size:clamp(28px, 8vw, 64px); }
+  .scene h2 { font-size:clamp(22px, 6vw, 48px); }
+  .scene p {
+    margin-top:6%; font-size:clamp(14px, 3.6vw, 22px);
+    color:rgba(255,255,255,.85); line-height:1.5;
+    max-width:90%;
   }
+  .accent { color:#00ff9d; }
+  .warm { color:#ffb86b; }
 
-  .moon-glow-1 { animation: moonGlow 5s ease-in-out infinite; }
-  .moon-glow-2 { animation: moonGlow 3s ease-in-out infinite; animation-delay: -1.5s; }
-  @keyframes moonGlow {
-    0%, 100% { opacity: 0.4; }
-    50%      { opacity: 0.85; }
+  /* Petit label de marque */
+  .brand {
+    position:absolute; top:6%; left:0; right:0;
+    text-align:center; font-weight:800; letter-spacing:4px;
+    font-size:clamp(11px, 2.6vw, 16px);
+    color:rgba(255,255,255,.5); z-index:5;
+    opacity:0; transition:opacity .8s;
   }
+  .brand.show { opacity:1; }
 
-  /* ============ CORBEAUX ============ */
-  .crow      { animation: crowFly 16s linear infinite; }
-  .crow-2    { animation-delay: -4s; }
-  .crow-3    { animation-delay: -8s; }
-  .crow-4    { animation-delay: -12s; }
-  @keyframes crowFly {
-    0%   { transform: translate(-300px, 0); opacity: 0; }
-    8%   { opacity: 0.9; }
-    92%  { opacity: 0.9; }
-    100% { transform: translate(2300px, -120px); opacity: 0; }
+  /* Barre de progression scènes */
+  .progress {
+    position:absolute; bottom:4%; left:50%; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:5;
   }
-  .wing-1 { animation: wing1 0.35s linear infinite; transform-origin: center; }
-  .wing-2 { animation: wing2 0.35s linear infinite; transform-origin: center; }
-  @keyframes wing1 { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.35); } }
-  @keyframes wing2 { 0%,100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
-
-  /* ============ BRAISES ============ */
-  .ember { animation: emberFloat 7s ease-in-out infinite; }
-  @keyframes emberFloat {
-    0%   { transform: translateY(0) scale(0.6); opacity: 0; }
-    15%  { opacity: 1; }
-    85%  { opacity: 0.4; }
-    100% { transform: translateY(-500px) scale(0.2); opacity: 0; }
+  .dot {
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(255,255,255,.25); transition:.4s;
   }
-
-  /* ============ TITRE NIGHTY ============ */
-  .title-nighty {
-    opacity: 0;
-    transform-origin: 960px 500px;
-    animation: nightyReveal 3s cubic-bezier(0.16, 1, 0.3, 1) 9s forwards;
-  }
-  @keyframes nightyReveal {
-    0%   { opacity: 0; letter-spacing: 120px; transform: scale(0.6); filter: blur(40px); }
-    55%  { opacity: 1; letter-spacing: 15px; transform: scale(1.05); filter: blur(0); }
-    75%  { transform: scale(0.98); }
-    100% { opacity: 1; letter-spacing: 10px; transform: scale(1); filter: blur(0); }
-  }
-
-  .title-nighty-glow {
-    animation: titleGlowPulse 4s ease-in-out infinite;
-    animation-delay: 12s;
-    opacity: 0;
-  }
-  @keyframes titleGlowPulse {
-    0%, 100% { opacity: 0.35; }
-    50%      { opacity: 0.75; }
-  }
-
-  /* ============ STUDIO ============ */
-  .studio-text {
-    opacity: 0;
-    animation: studioReveal 1.8s cubic-bezier(0.16, 1, 0.3, 1) 12s forwards;
-  }
-  @keyframes studioReveal {
-    from { opacity: 0; transform: translateY(25px); letter-spacing: 25px; }
-    to   { opacity: 0.95; transform: translateY(0); letter-spacing: 8px; }
-  }
-
-  /* ============ SOUS-TITRE ============ */
-  .sub-text {
-    opacity: 0;
-    animation: subReveal 1.5s ease-out 14s forwards;
-  }
-  @keyframes subReveal {
-    from { opacity: 0; transform: translateY(15px); letter-spacing: 20px; }
-    to   { opacity: 0.85; transform: translateY(0); letter-spacing: 14px; }
-  }
-
-  /* ============ EFFACEMENT GROUPE 1 ============ */
-  .fade-out-group-1 {
-    animation: fadeOutGroup 1.2s ease-out 16.5s forwards;
-  }
-  @keyframes fadeOutGroup {
-    from { opacity: 1; filter: blur(0); }
-    to   { opacity: 0; filter: blur(15px); }
-  }
-
-  /* ============ SAISON 1 ============ */
-  .saison-text {
-    opacity: 0;
-    animation: saisonReveal 2s cubic-bezier(0.16, 1, 0.3, 1) 18s forwards;
-  }
-  @keyframes saisonReveal {
-    from { opacity: 0; letter-spacing: 50px; filter: blur(15px); }
-    to   { opacity: 1; letter-spacing: 15px; filter: blur(0); }
-  }
-
-  /* ============ NIGHTMARES ============ */
-  .nightmares-text {
-    opacity: 0;
-    transform-origin: 960px 720px;
-    animation: nightmaresSlam 2.5s cubic-bezier(0.16, 1, 0.3, 1) 20s forwards;
-  }
-  @keyframes nightmaresSlam {
-    0%   { opacity: 0; letter-spacing: 100px; transform: scale(1.6); filter: blur(30px); }
-    40%  { opacity: 1; letter-spacing: 8px; transform: scale(0.94); filter: blur(0); }
-    60%  { transform: scale(1.03); }
-    80%  { transform: scale(0.99); }
-    100% { opacity: 1; letter-spacing: 6px; transform: scale(1); filter: blur(0); }
-  }
-
-  .nightmares-shake {
-    animation: nightShake 0.15s linear 22.5s infinite;
-  }
-  @keyframes nightShake {
-    0%, 100% { transform: translate(0, 0); }
-    25%      { transform: translate(-2px, 1px); }
-    50%      { transform: translate(1px, -1px); }
-    75%      { transform: translate(-1px, -1px); }
-  }
-
-  /* ============ SANG QUI COULE ============ */
-  .blood { animation: bloodDrip 4s ease-in 23s forwards; opacity: 0; }
-  .blood-2 { animation-delay: 23.4s; }
-  .blood-3 { animation-delay: 23.8s; }
-  @keyframes bloodDrip {
-    0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }
-    20%  { opacity: 1; transform: scaleY(1); }
-    100% { opacity: 1; transform: translateY(60px); }
-  }
-
-  /* ============ BIENTOT ============ */
-  .soon-text {
-    opacity: 0;
-    animation: soonPulse 3s ease-in-out 25s infinite;
-  }
-  @keyframes soonPulse {
-    0%, 100% { opacity: 0.25; letter-spacing: 10px; }
-    50%      { opacity: 1;    letter-spacing: 18px; }
-  }
-
-  /* ============ ECLAIR ============ */
-  .lightning {
-    animation: lightningFlash 12s ease-in-out infinite;
-    opacity: 0;
-  }
-  @keyframes lightningFlash {
-    0%, 88%, 93%, 100% { opacity: 0; }
-    89%, 91%           { opacity: 0.6; }
-    90%                { opacity: 0.25; }
-  }
-
-  /* ============ SCANLINES ============ */
-  .scanlines { animation: scanMove 8s linear infinite; opacity: 0.07; }
-  @keyframes scanMove {
-    0%   { transform: translateY(0); }
-    100% { transform: translateY(40px); }
-  }
-
-  /* ============ VIGNETTE ============ */
-  .vignette { animation: vignettePulse 5s ease-in-out infinite; }
-  @keyframes vignettePulse {
-    0%, 100% { opacity: 0.9; }
-    50%      { opacity: 1; }
-  }
+  .dot.on { background:#00ff9d; box-shadow:0 0 12px #00ff9d; }
 </style>
 </head>
 <body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div class="brand" id="brand">IPHAX</div>
 
-<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <div class="text-layer">
+    <div class="scene active" data-scene="0">
+      <h1>Et si parler<br>n'était pas<br>un <span class="accent">luxe</span> ?</h1>
+    </div>
+    <div class="scene" data-scene="1">
+      <h2>Le silence,<br>ça pèse.</h2>
+      <p>Les mots qu'on garde pour soi finissent par peser plus lourd que tout.</p>
+    </div>
+    <div class="scene" data-scene="2">
+      <h2>L'aide est un <span class="accent">droit</span>,<br>pas un luxe.</h2>
+    </div>
+    <div class="scene" data-scene="3">
+      <h2><span class="accent">Iphax</span></h2>
+      <p>Le collectif d'écoute en ligne.<br>Des services pédiatriques pensés pour les jeunes.</p>
+    </div>
+    <div class="scene" data-scene="4">
+      <h2>Rejoins <span class="accent">Iphax</span>.</h2>
+      <p>Parler, c'est déjà avancer.</p>
+    </div>
+  </div>
 
-  <defs>
-    <!-- Ciel rouge sombre -->
-    <radialGradient id="skyGrad" cx="50%" cy="55%" r="80%">
-      <stop offset="0%"   stop-color="#4a0404"/>
-      <stop offset="25%"  stop-color="#2a0202"/>
-      <stop offset="55%"  stop-color="#120000"/>
-      <stop offset="100%" stop-color="#000000"/>
-    </radialGradient>
+  <div class="progress" id="progress"></div>
+</div>
 
-    <!-- Halo lune -->
-    <radialGradient id="moonHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#ff3030" stop-opacity="0.75"/>
-      <stop offset="40%"  stop-color="#a00000" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-    </radialGradient>
+<script>
+/* ============ SHADER MOUVANT (WebGL) ============ */
+const canvas = document.getElementById('gl');
+const gl = canvas.getContext('webgl');
 
-    <!-- Corps lune -->
-    <radialGradient id="moonBody" cx="42%" cy="38%" r="70%">
-      <stop offset="0%"   stop-color="#ff6060"/>
-      <stop offset="35%"  stop-color="#cc1a1a"/>
-      <stop offset="75%"  stop-color="#7a0808"/>
-      <stop offset="100%" stop-color="#3a0202"/>
-    </radialGradient>
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  gl.viewport(0,0,canvas.width,canvas.height);
+}
+window.addEventListener('resize', resize);
 
-    <!-- Brouillard -->
-    <radialGradient id="fogGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#a00000" stop-opacity="0.4"/>
-      <stop offset="60%"  stop-color="#6a0000" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-    </radialGradient>
+const vert = `
+attribute vec2 pos;
+void main(){ gl_Position = vec4(pos,0.0,1.0); }
+`;
 
-    <!-- Halo titre -->
-    <radialGradient id="titleHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#ff0000" stop-opacity="0.6"/>
-      <stop offset="55%"  stop-color="#8b0000" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-    </radialGradient>
+const frag = `
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+uniform float u_mood;   // 0 = froid, 1 = chaud/lumineux
 
-    <!-- Vignette -->
-    <radialGradient id="vignetteGrad" cx="50%" cy="50%" r="75%">
-      <stop offset="0%"   stop-color="#000000" stop-opacity="0"/>
-      <stop offset="70%"  stop-color="#000000" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.85"/>
-    </radialGradient>
+// bruit simplex simplifié
+vec2 hash(vec2 p){ p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))); return -1.0+2.0*fract(sin(p)*43758.5453); }
+float noise(vec2 p){
+  const float K1=0.366025404, K2=0.5*(sqrt(3.0)-1.0);
+  vec2 i=floor(p+(p.x+p.y)*K1);
+  vec2 a=p-i+(i.x+i.y)*K2;
+  float m=step(a.y,a.x);
+  vec2 o=vec2(m,1.0-m);
+  vec2 b=a-o+K2;
+  vec2 c=a-1.0+2.0*K2;
+  vec3 h=vec3(0.5*(a.x+a.y),0.5*(b.x+b.y),0.5*(c.x+c.y));
+  vec3 n=vec3(dot(a,hash(i)),dot(b,hash(i+o)),dot(c,hash(i+1.0)));
+  vec3 w=max(0.5-vec3(dot(a,a),dot(b,b),dot(c,c)),0.0);
+  return 50.0*dot(n*w*w*w,vec3(1.0));
+}
+float fbm(vec2 p){
+  float v=0.0, a=0.5;
+  for(int i=0;i<5;i++){ v+=a*noise(p); p*=2.0; a*=0.5; }
+  return v;
+}
+void main(){
+  vec2 uv = gl_FragCoord.xy/u_res;
+  vec2 p = uv*3.0;
+  float t = u_time*0.25;
 
-    <filter id="blurFog"><feGaussianBlur stdDeviation="70"/></filter>
-    <filter id="blurBig"><feGaussianBlur stdDeviation="30"/></filter>
-    <filter id="blurHalo"><feGaussianBlur stdDeviation="45"/></filter>
-    <filter id="blurMoon"><feGaussianBlur stdDeviation="6"/></filter>
+  // fluide organique mouvant
+  vec2 q = vec2(fbm(p+vec2(0.0,t)), fbm(p+vec2(5.2,1.3)-t));
+  vec2 r = vec2(fbm(p+4.0*q+vec2(1.7,9.2)+0.15*t), fbm(p+4.0*q+vec2(8.3,2.8)-0.126*t));
+  float f = fbm(p+4.0*r);
 
-    <filter id="titleGlowBig">
-      <feGaussianBlur stdDeviation="14" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+  // palettes selon l'ambiance
+  vec3 cold = vec3(0.10,0.18,0.38);
+  vec3 cold2= vec3(0.05,0.35,0.45);
+  vec3 warm = vec3(0.00,1.00,0.61);   // #00ff9d
+  vec3 warm2= vec3(0.60,0.20,0.55);
 
-    <filter id="redGlow">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
+  vec3 colA = mix(cold, cold2, f);
+  vec3 colB = mix(warm, warm2, f);
+  vec3 col  = mix(colA, colB, u_mood);
 
-  <!-- ==================== CIEL ==================== -->
-  <rect class="sky-pulse" width="1920" height="1080" fill="url(#skyGrad)"/>
+  col *= (0.55 + 0.9*f);
+  // halo central doux
+  float d = distance(uv, vec2(0.5));
+  col += smoothstep(0.6,0.0,d)*0.15*mix(vec3(0.2,0.3,0.6),warm,u_mood);
 
-  <!-- ==================== ECLAIR ==================== -->
-  <rect class="lightning" width="1920" height="1080" fill="#ff0000"/>
+  // vignette
+  col *= smoothstep(0.95,0.35,d);
+  gl_FragColor = vec4(col,1.0);
+}
+`;
 
-  <!-- ==================== SCANLINES ==================== -->
-  <g class="scanlines">
-    <rect y="0"    width="1920" height="2" fill="#ff0000"/>
-    <rect y="60"   width="1920" height="1" fill="#ff0000"/>
-    <rect y="120"  width="1920" height="2" fill="#ff0000"/>
-    <rect y="220"  width="1920" height="1" fill="#ff0000"/>
-    <rect y="340"  width="1920" height="2" fill="#ff0000"/>
-    <rect y="480"  width="1920" height="1" fill="#ff0000"/>
-    <rect y="620"  width="1920" height="2" fill="#ff0000"/>
-    <rect y="760"  width="1920" height="1" fill="#ff0000"/>
-    <rect y="900"  width="1920" height="2" fill="#ff0000"/>
-    <rect y="1020" width="1920" height="1" fill="#ff0000"/>
-  </g>
+function sh(type, src){
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, sh(gl.VERTEX_SHADER, vert));
+gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, frag));
+gl.linkProgram(prog);
+gl.useProgram(prog);
 
-  <!-- ==================== LUNE ROUGE ==================== -->
-  <g class="moon-rise">
-    <circle class="moon-glow-1" cx="960" cy="440" r="440" fill="url(#moonHalo)" filter="url(#blurHalo)"/>
-    <circle class="moon-glow-2" cx="960" cy="440" r="280" fill="url(#moonHalo)" filter="url(#blurBig)"/>
-    <circle cx="960" cy="440" r="200" fill="url(#moonBody)" filter="url(#blurMoon)"/>
-    <g fill="#5a0505" opacity="0.55">
-      <circle cx="880" cy="380" r="30"/>
-      <circle cx="1040" cy="420" r="25"/>
-      <circle cx="900" cy="500" r="35"/>
-      <circle cx="1010" cy="520" r="20"/>
-      <circle cx="930" cy="460" r="15"/>
-      <circle cx="1000" cy="360" r="12"/>
-      <circle cx="860" cy="450" r="10"/>
-    </g>
-    <circle cx="900" cy="380" r="180" fill="#ff8888" opacity="0.14" filter="url(#blurBig)"/>
-  </g>
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(prog,'pos');
+gl.enableVertexAttribArray(loc);
+gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
 
-  <!-- ==================== BROUILLARD ==================== -->
-  <g filter="url(#blurFog)">
-    <ellipse class="fog-1" cx="500"  cy="850"  rx="800" ry="450" fill="url(#fogGrad)"/>
-    <ellipse class="fog-2" cx="1400" cy="900"  rx="850" ry="400" fill="url(#fogGrad)"/>
-    <ellipse class="fog-3" cx="960"  cy="1000" rx="1000" ry="350" fill="url(#fogGrad)"/>
-    <ellipse class="fog-4" cx="700"  cy="1050" rx="900" ry="300" fill="url(#fogGrad)"/>
-  </g>
+const uRes  = gl.getUniformLocation(prog,'u_res');
+const uTime = gl.getUniformLocation(prog,'u_time');
+const uMood = gl.getUniformLocation(prog,'u_mood');
 
-  <!-- ==================== MONTAGNES ==================== -->
-  <g fill="#000000">
-    <path d="M 0 1080 L 0 850 L 150 750 L 280 830 L 420 720 L 550 810 L 700 700 L 850 780 L 960 660 L 1100 750 L 1250 690 L 1400 780 L 1550 720 L 1700 820 L 1830 760 L 1920 830 L 1920 1080 Z" opacity="0.85"/>
-    <path d="M 0 1080 L 0 950 L 200 870 L 350 920 L 500 850 L 650 900 L 800 880 L 920 950 L 1000 920 L 1100 960 L 1250 900 L 1400 940 L 1550 880 L 1700 950 L 1850 900 L 1920 970 L 1920 1080 Z"/>
-  </g>
+resize();
 
-  <!-- ==================== CORBEAUX ==================== -->
-  <g fill="#000000" stroke="#1a0000" stroke-width="1.2">
-    <g class="crow crow-1">
-      <g transform="translate(0, 200)">
-        <path class="wing-1" d="M 0 0 Q -22 -14 -36 -8 Q -22 0 0 8 Q 22 0 36 -8 Q 22 -14 0 0 Z"/>
-      </g>
-    </g>
-    <g class="crow crow-2">
-      <g transform="translate(0, 320) scale(0.7)">
-        <path class="wing-2" d="M 0 0 Q -22 -14 -36 -8 Q -22 0 0 8 Q 22 0 36 -8 Q 22 -14 0 0 Z"/>
-      </g>
-    </g>
-    <g class="crow crow-3">
-      <g transform="translate(0, 130) scale(1.1)">
-        <path class="wing-1" d="M 0 0 Q -22 -14 -36 -8 Q -22 0 0 8 Q 22 0 36 -8 Q 22 -14 0 0 Z"/>
-      </g>
-    </g>
-    <g class="crow crow-4">
-      <g transform="translate(0, 400) scale(0.85)">
-        <path class="wing-2" d="M 0 0 Q -22 -14 -36 -8 Q -22 0 0 8 Q 22 0 36 -8 Q 22 -14 0 0 Z"/>
-      </g>
-    </g>
-  </g>
+let start = performance.now();
+let mood = 0, moodTarget = 0;
 
-  <!-- ==================== BRAISES ==================== -->
-  <g fill="#ff4020">
-    <circle class="ember" cx="300"  cy="800" r="2"/>
-    <circle class="ember" cx="600"  cy="900" r="1.5" style="animation-delay: 1s"/>
-    <circle class="ember" cx="900"  cy="850" r="2.5" style="animation-delay: 2s"/>
-    <circle class="ember" cx="1200" cy="900" r="1.8" style="animation-delay: 3s"/>
-    <circle class="ember" cx="1500" cy="820" r="2"   style="animation-delay: 4s"/>
-    <circle class="ember" cx="1700" cy="880" r="1.5" style="animation-delay: 5s"/>
-    <circle class="ember" cx="400"  cy="950" r="2.2" style="animation-delay: 2.5s"/>
-    <circle class="ember" cx="1300" cy="980" r="1.8" style="animation-delay: 1.5s"/>
-  </g>
+function render(now){
+  const t = (now - start)/1000;
+  mood += (moodTarget - mood)*0.02;   // transition douce du shader
+  gl.uniform2f(uRes, canvas.width, canvas.height);
+  gl.uniform1f(uTime, t);
+  gl.uniform1f(uMood, mood);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
 
-  <!-- ==================== VIGNETTE ==================== -->
-  <rect class="vignette" width="1920" height="1080" fill="url(#vignetteGrad)" pointer-events="none"/>
+/* ============ SÉQUENÇAGE DES SCÈNES ============ */
+const scenes = [...document.querySelectorAll('.scene')];
+const brand  = document.getElementById('brand');
+const progress = document.getElementById('progress');
+scenes.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' on':'');
+  progress.appendChild(d);
+});
+const dots = [...document.querySelectorAll('.dot')];
 
-  <!-- ==================== GROUPE 1 : NIGHTY + STUDIO + SOUS-TITRE ==================== -->
-  <g class="fade-out-group-1">
-    <!-- Titre NIGHTY -->
-    <g class="title-nighty">
-      <text x="960" y="500"
-            text-anchor="middle"
-            font-family="Georgia, 'Times New Roman', serif"
-            font-size="240"
-            font-weight="900"
-            fill="#ffffff"
-            letter-spacing="10"
-            filter="url(#titleGlowBig)">Nighty</text>
-      <text x="960" y="500"
-            text-anchor="middle"
-            font-family="Georgia, 'Times New Roman', serif"
-            font-size="240"
-            font-weight="900"
-            fill="none"
-            stroke="#ff4040"
-            stroke-width="1.2"
-            letter-spacing="10"
-            opacity="0.8">Nighty</text>
-    </g>
+// Durée de chaque scène (ms)
+const DURATIONS = [3500, 4500, 4000, 5500, 4000];
+// Ambiance shader par scène (0=froid, 1=chaud/lumineux)
+const MOODS     = [0.15, 0.05, 0.6, 0.85, 1.0];
 
-    <!-- Sous-titre studio -->
-    <text class="studio-text"
-          x="960" y="590"
-          text-anchor="middle"
-          font-family="Georgia, serif"
-          font-size="30"
-          font-weight="400"
-          fill="#f0d8d8"
-          letter-spacing="8">By MoonLight Studio</text>
+let current = 0;
 
-    <!-- Sous-titre jeu -->
-    <text class="sub-text"
-          x="960" y="670"
-          text-anchor="middle"
-          font-family="Arial, sans-serif"
-          font-size="24"
-          font-weight="300"
-          fill="#d0a8a8"
-          letter-spacing="14">LOUP-GAROU EN LIGNE</text>
-  </g>
-
-  <!-- ==================== GROUPE 2 : SAISON 1 + NIGHTMARES ==================== -->
-  <!-- SAISON 1 -->
-  <text class="saison-text"
-        x="960" y="480"
-        text-anchor="middle"
-        font-family="Arial, sans-serif"
-        font-size="48"
-        font-weight="300"
-        fill="#ffffff"
-        letter-spacing="15"
-        opacity="0.9">SAISON 1</text>
-
-  <!-- NIGHTMARES (avec glitch shake) -->
-  <g class="nightmares-shake">
-    <text class="nightmares-text"
-          x="960" y="720"
-          text-anchor="middle"
-          font-family="Georgia, 'Times New Roman', serif"
-          font-size="200"
-          font-weight="900"
-          fill="#ff0000"
-          letter-spacing="6"
-          filter="url(#titleGlowBig)">NIGHTMARES</text>
-    <text class="nightmares-text"
-          x="960" y="720"
-          text-anchor="middle"
-          font-family="Georgia, 'Times New Roman', serif"
-          font-size="200"
-          font-weight="900"
-          fill="none"
-          stroke="#ffffff"
-          stroke-width="1.2"
-          letter-spacing="6"
-          style="animation-delay: 20s;">NIGHTMARES</text>
-  </g>
-
-  <!-- Sang qui coule -->
-  <g class="blood">
-    <path d="M 700 770 L 700 850 Q 695 880 700 910 Q 705 880 700 850 Z" fill="#8b0000"/>
-    <circle cx="700" cy="920" r="8" fill="#8b0000"/>
-  </g>
-  <g class="blood blood-2">
-    <path d="M 960 780 L 960 880 Q 954 915 960 950 Q 966 915 960 880 Z" fill="#8b0000"/>
-    <circle cx="960" cy="965" r="10" fill="#8b0000"/>
-  </g>
-  <g class="blood blood-3">
-    <path d="M 1220 770 L 1220 840 Q 1215 865 1220 890 Q 1225 865 1220 840 Z" fill="#8b0000"/>
-    <circle cx="1220" cy="900" r="7" fill="#8b0000"/>
-  </g>
-
-  <!-- BIENTÔT -->
-  <text class="soon-text"
-        x="960" y="1010"
-        text-anchor="middle"
-        font-family="Georgia, serif"
-        font-size="32"
-        font-weight="400"
-        fill="#ff6060"
-        letter-spacing="12">BIENTÔT</text>
-
-</svg>
-
+function showScene(i){
+  scenes.forEach((s,k)=> s.classList.toggle('active', k===i));
+  dots.forEach((d,k)=> d.classList.toggle('on', k===i));
+  moodTarget = MOODS[i];
+  brand.classList.toggle('show', i>=3);   // marque visible à partir de la scène Iphax
+  current = i;
+  setTimeout(()=> showScene((i+1)%scenes.length), DURATIONS[i]);
+}
+showScene(0);
+</script>
 </body>
 </html>

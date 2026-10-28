@@ -1,0 +1,702 @@
+/* ============================================================
+   IPHAX — PUB 15s
+   Style : bleu profond, aérien, néon doux, respirant
+   ============================================================ */
+
+   *,
+   *::before,
+   *::after {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+   }
+   
+   :root {
+     /* Fond bleu profond */
+     --bg-0: #01050f;
+     --bg-1: #041029;
+     --bg-2: #061a3d;
+   
+     /* Bleus signature */
+     --blue-electric: #38bdf8;
+     --blue-cyan:     #22d3ee;
+     --blue-azure:    #60a5fa;
+     --blue-deep:     #1e40af;
+     --blue-ice:      #a5f3fc;
+     --blue-periwinkle: #818cf8;
+   
+     /* Accents secondaires (pour la vie) */
+     --violet-soft: #a78bfa;
+     --mint-glow:   #5eead4;
+     --pink-soft:   #f0abfc;
+   
+     /* Texte */
+     --text:      #f0f9ff;
+     --text-soft: #bae6fd;
+     --text-dim:  #7dd3fc;
+   
+     /* Typo */
+     --font-impact: 'Helvetica Neue', 'Arial Black', Impact, sans-serif;
+     --font-serif:  'Georgia', serif;
+   }
+   
+   html, body {
+     width: 100%;
+     height: 100%;
+     overflow: hidden;
+     background: var(--bg-0);
+     color: var(--text);
+     font-family: var(--font-impact);
+     cursor: default;
+     user-select: none;
+     -webkit-font-smoothing: antialiased;
+   }
+   
+   /* ------------------------------------------------------------
+      CANVAS PARTICULES
+      ------------------------------------------------------------ */
+   #particles-canvas {
+     position: fixed;
+     inset: 0;
+     z-index: 2;
+     pointer-events: none;
+     opacity: 0;
+     transition: opacity 0.6s ease;
+   }
+   body.playing #particles-canvas {
+     opacity: 1;
+   }
+   
+   /* ------------------------------------------------------------
+      FLASH
+      ------------------------------------------------------------ */
+   .flash {
+     position: fixed;
+     inset: 0;
+     background: radial-gradient(circle at center,
+       #ffffff 0%,
+       #a5f3fc 40%,
+       transparent 70%);
+     z-index: 50;
+     opacity: 0;
+     pointer-events: none;
+   }
+   .flash.fire {
+     animation: flashFire 0.4s ease-out;
+   }
+   @keyframes flashFire {
+     0%   { opacity: 0; transform: scale(0.8); }
+     20%  { opacity: 0.85; transform: scale(1); }
+     100% { opacity: 0; transform: scale(1.2); }
+   }
+   
+   /* ------------------------------------------------------------
+      FOND AURORA BLEU — respirant
+      ------------------------------------------------------------ */
+   .aurora {
+     position: fixed;
+     inset: 0;
+     z-index: 1;
+     overflow: hidden;
+     background:
+       radial-gradient(ellipse at 50% 30%, var(--bg-2) 0%, var(--bg-1) 40%, var(--bg-0) 85%);
+   }
+   
+   /* Aurores boréales bleues */
+   .blob {
+     position: absolute;
+     border-radius: 50%;
+     filter: blur(140px);
+     mix-blend-mode: screen;
+     will-change: transform, opacity;
+   }
+   
+   .blob-1 {
+     width: 75vw;
+     height: 75vw;
+     background: radial-gradient(circle, var(--blue-electric) 0%, transparent 70%);
+     top: -30%;
+     left: -25%;
+     opacity: 0.55;
+     animation: blobFloat1 14s ease-in-out infinite;
+   }
+   .blob-2 {
+     width: 65vw;
+     height: 65vw;
+     background: radial-gradient(circle, var(--blue-periwinkle) 0%, transparent 70%);
+     bottom: -35%;
+     right: -25%;
+     opacity: 0.5;
+     animation: blobFloat2 16s ease-in-out infinite;
+   }
+   .blob-3 {
+     width: 50vw;
+     height: 50vw;
+     background: radial-gradient(circle, var(--blue-cyan) 0%, transparent 70%);
+     top: 25%;
+     left: 35%;
+     opacity: 0.4;
+     animation: blobFloat3 12s ease-in-out infinite;
+   }
+   
+   @keyframes blobFloat1 {
+     0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+     50%      { transform: translate(10vw, 8vh) scale(1.2); opacity: 0.75; }
+   }
+   @keyframes blobFloat2 {
+     0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.45; }
+     50%      { transform: translate(-12vw, -6vh) scale(1.15); opacity: 0.7; }
+   }
+   @keyframes blobFloat3 {
+     0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+     50%      { transform: translate(-8vw, 10vh) scale(1.3); opacity: 0.6; }
+   }
+   
+   /* Grille bleutée subtile */
+   .grid {
+     position: absolute;
+     inset: 0;
+     background-image:
+       linear-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+       linear-gradient(90deg, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+     background-size: 70px 70px;
+     mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+     -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+     animation: gridDrift 30s linear infinite;
+   }
+   @keyframes gridDrift {
+     from { background-position: 0 0; }
+     to   { background-position: 70px 70px; }
+   }
+   
+   /* Vignette bleutée */
+   .vignette {
+     position: absolute;
+     inset: 0;
+     background: radial-gradient(ellipse at center,
+       transparent 25%,
+       rgba(1, 5, 15, 0.7) 70%,
+       rgba(1, 5, 15, 0.95) 100%);
+   }
+   
+   /* ------------------------------------------------------------
+      TRAILER & SCÈNES
+      ------------------------------------------------------------ */
+   #trailer {
+     position: fixed;
+     inset: 0;
+     z-index: 3;
+     opacity: 0;
+     transition: opacity 0.6s ease;
+   }
+   body.playing #trailer { opacity: 1; }
+   
+   .scene {
+     position: absolute;
+     inset: 0;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 5vw;
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity 0.3s ease;
+   }
+   .scene.active { opacity: 1; }
+   
+   .scene-inner {
+     position: relative;
+     width: 100%;
+     max-width: 1300px;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-align: center;
+     gap: 1rem;
+   }
+   
+   /* ------------------------------------------------------------
+      TEXTE IMPACT (base) — couleurs vibrantes
+      ------------------------------------------------------------ */
+   .big-text,
+   .punch-text {
+     font-family: var(--font-impact);
+     font-weight: 900;
+     text-transform: uppercase;
+     line-height: 0.95;
+     letter-spacing: -0.02em;
+     opacity: 0;
+     transform: scale(0.75) translateY(25px);
+     filter: blur(14px);
+     transition:
+       opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+       transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+       filter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   .big-text.show,
+   .punch-text.show {
+     opacity: 1;
+     transform: scale(1) translateY(0);
+     filter: blur(0);
+   }
+   
+   /* ------------------------------------------------------------
+      SCÈNE 1 — TU N'ES PAS SEUL
+      ------------------------------------------------------------ */
+   .scene-1 .text-1 {
+     font-size: clamp(2.8rem, 10vw, 9rem);
+     background: linear-gradient(180deg,
+       #f0f9ff 0%,
+       #bae6fd 40%,
+       #7dd3fc 100%);
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     text-shadow:
+       0 0 40px rgba(56, 189, 248, 0.6),
+       0 0 80px rgba(96, 165, 250, 0.4);
+   }
+   
+   .scene-1 .text-2 {
+     font-size: clamp(4rem, 16vw, 15rem);
+     background: linear-gradient(135deg,
+       #38bdf8 0%,
+       #22d3ee 25%,
+       #a5f3fc 50%,
+       #60a5fa 75%,
+       #818cf8 100%);
+     background-size: 250% 250%;
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     margin-top: 0.15em;
+     animation: blueShimmer 3s ease-in-out infinite;
+     filter: drop-shadow(0 0 50px rgba(56, 189, 248, 0.7));
+   }
+   
+   @keyframes blueShimmer {
+     0%, 100% { background-position: 0% 50%; }
+     50%      { background-position: 100% 50%; }
+   }
+   
+   /* ------------------------------------------------------------
+      SCÈNE 2 — MAIS QUI T'ÉCOUTE
+      ------------------------------------------------------------ */
+   .scene-2 .scene-inner {
+     gap: 2.2rem;
+   }
+   
+   .rapid-words {
+     display: flex;
+     gap: 1.6rem;
+     flex-wrap: wrap;
+     justify-content: center;
+     margin-bottom: 0.5rem;
+   }
+   
+   .rword {
+     font-family: var(--font-serif);
+     font-style: italic;
+     font-size: clamp(1rem, 2.4vw, 1.8rem);
+     color: var(--text-soft);
+     opacity: 0;
+     transform: translateY(20px) rotate(-5deg);
+     transition: opacity 0.3s ease, transform 0.3s ease;
+     text-decoration: line-through;
+     text-decoration-color: rgba(56, 189, 248, 0.8);
+     text-decoration-thickness: 2px;
+     text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+   }
+   .rword.show {
+     opacity: 0.9;
+     transform: translateY(0) rotate(0);
+   }
+   
+   .scene-2 .text-3 {
+     font-size: clamp(2.2rem, 7.5vw, 6.5rem);
+     background: linear-gradient(120deg,
+       #ffffff 0%,
+       #a5f3fc 50%,
+       #38bdf8 100%);
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     text-shadow:
+       0 0 30px rgba(56, 189, 248, 0.8),
+       0 0 70px rgba(96, 165, 250, 0.5);
+     filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.4));
+   }
+   
+   /* ------------------------------------------------------------
+      SCÈNE 3 — IPHAX RÉVÉLATION
+      ------------------------------------------------------------ */
+   .scene-3 .scene-inner {
+     gap: 1.8rem;
+   }
+   
+   /* Halo respirant autour d'IPHAX */
+   .reveal-glow {
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     width: 30vw;
+     height: 30vw;
+     transform: translate(-50%, -50%);
+     border-radius: 50%;
+     background: radial-gradient(circle,
+       rgba(56, 189, 248, 0.55) 0%,
+       rgba(96, 165, 250, 0.35) 30%,
+       rgba(129, 140, 248, 0.15) 55%,
+       transparent 75%);
+     filter: blur(50px);
+     pointer-events: none;
+     opacity: 0;
+     transition: opacity 0.8s ease, width 1s ease, height 1s ease;
+   }
+   .scene-3.active .reveal-glow {
+     width: 110vw;
+     height: 110vw;
+     opacity: 1;
+     animation: glowBreathe 2.5s ease-in-out infinite;
+   }
+   
+   @keyframes glowBreathe {
+     0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
+     50%      { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+   }
+   
+   .scene-3 .text-4 {
+     font-size: clamp(3.5rem, 14vw, 13rem);
+     letter-spacing: 0.06em;
+     background: linear-gradient(135deg,
+       #a5f3fc 0%,
+       #38bdf8 25%,
+       #60a5fa 50%,
+       #818cf8 75%,
+       #22d3ee 100%);
+     background-size: 300% 300%;
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     animation: blueShimmer 2.5s ease-in-out infinite;
+     filter:
+       drop-shadow(0 0 30px rgba(56, 189, 248, 0.9))
+       drop-shadow(0 0 60px rgba(96, 165, 250, 0.6));
+   }
+   
+   .sub-text {
+     font-family: var(--font-serif);
+     font-style: italic;
+     font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+     color: var(--blue-ice);
+     letter-spacing: 0.25em;
+     opacity: 0;
+     transform: translateY(18px);
+     transition: opacity 0.5s ease, transform 0.5s ease;
+     text-shadow: 0 0 25px rgba(165, 243, 252, 0.6);
+   }
+   .sub-text.show {
+     opacity: 1;
+     transform: translateY(0);
+   }
+   
+   /* ------------------------------------------------------------
+      SCÈNE 4 — PUNCHLINE
+      ------------------------------------------------------------ */
+   .scene-4 .scene-inner {
+     gap: 0.4rem;
+   }
+   
+   .scene-4 .punch-text {
+     font-size: clamp(1.8rem, 6.5vw, 5.8rem);
+     letter-spacing: -0.015em;
+     background: linear-gradient(180deg, #ffffff 0%, #bae6fd 60%, #7dd3fc 100%);
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     text-shadow:
+       0 0 25px rgba(186, 230, 253, 0.6),
+       0 0 60px rgba(56, 189, 248, 0.4);
+   }
+   
+   .scene-4 .accent {
+     margin-top: 0.35em;
+     background: linear-gradient(120deg,
+       #22d3ee 0%,
+       #38bdf8 25%,
+       #60a5fa 50%,
+       #818cf8 75%,
+       #22d3ee 100%);
+     background-size: 300% 300%;
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     animation: blueShimmer 2.5s ease-in-out infinite;
+     text-shadow: none;
+     filter:
+       drop-shadow(0 0 30px rgba(34, 211, 238, 0.8))
+       drop-shadow(0 0 60px rgba(96, 165, 250, 0.5));
+   }
+   
+   /* ------------------------------------------------------------
+      SCÈNE 5 — LOGO FINAL
+      ------------------------------------------------------------ */
+   .scene-5 .scene-inner {
+     gap: 1.8rem;
+   }
+   
+   .logo-glow {
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     width: 100vw;
+     height: 100vw;
+     max-width: 1100px;
+     max-height: 1100px;
+     transform: translate(-50%, -50%);
+     border-radius: 50%;
+     background: radial-gradient(circle,
+       rgba(56, 189, 248, 0.4) 0%,
+       rgba(96, 165, 250, 0.25) 30%,
+       rgba(129, 140, 248, 0.12) 55%,
+       transparent 75%);
+     filter: blur(70px);
+     animation: logoBreathe 2.2s ease-in-out infinite;
+     pointer-events: none;
+   }
+   @keyframes logoBreathe {
+     0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+     50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+   }
+   
+   .logo {
+     font-family: var(--font-impact);
+     font-weight: 900;
+     font-size: clamp(4.5rem, 18vw, 17rem);
+     letter-spacing: 0.05em;
+     background: linear-gradient(135deg,
+       #a5f3fc 0%,
+       #38bdf8 20%,
+       #60a5fa 45%,
+       #818cf8 70%,
+       #22d3ee 100%);
+     background-size: 300% 300%;
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     opacity: 0;
+     transform: scale(0.5);
+     filter: blur(35px);
+     transition:
+       opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+       transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+       filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+     animation: blueShimmer 3s ease-in-out infinite;
+     filter: drop-shadow(0 0 70px rgba(56, 189, 248, 0.8));
+   }
+   .logo.show {
+     opacity: 1;
+     transform: scale(1);
+     filter:
+       blur(0)
+       drop-shadow(0 0 70px rgba(56, 189, 248, 0.8))
+       drop-shadow(0 0 120px rgba(96, 165, 250, 0.5));
+   }
+   
+   .cta {
+     font-family: var(--font-impact);
+     font-weight: 700;
+     font-size: clamp(0.9rem, 1.8vw, 1.4rem);
+     letter-spacing: 0.55em;
+     color: var(--blue-ice);
+     opacity: 0;
+     transform: translateY(15px);
+     transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s;
+     text-shadow: 0 0 20px rgba(165, 243, 252, 0.7);
+   }
+   .cta.show {
+     opacity: 1;
+     transform: translateY(0);
+   }
+   
+   /* ------------------------------------------------------------
+      ÉCRAN DE DÉMARRAGE
+      ------------------------------------------------------------ */
+   .start-screen {
+     position: fixed;
+     inset: 0;
+     z-index: 100;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background:
+       radial-gradient(ellipse at center,
+         rgba(6, 26, 61, 0.9) 0%,
+         rgba(1, 5, 15, 0.95) 80%);
+     backdrop-filter: blur(25px);
+     -webkit-backdrop-filter: blur(25px);
+     transition: opacity 0.7s ease, visibility 0.7s;
+   }
+   .start-screen.hidden {
+     opacity: 0;
+     visibility: hidden;
+     pointer-events: none;
+   }
+   
+   .start-inner {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     gap: 1.3rem;
+     text-align: center;
+     padding: 2rem;
+     animation: startFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   @keyframes startFadeIn {
+     from { opacity: 0; transform: translateY(30px); }
+     to   { opacity: 1; transform: translateY(0); }
+   }
+   
+   .start-title {
+     font-family: var(--font-impact);
+     font-weight: 900;
+     font-size: clamp(3.5rem, 9vw, 7rem);
+     letter-spacing: 0.12em;
+     background: linear-gradient(135deg,
+       #a5f3fc 0%,
+       #38bdf8 25%,
+       #60a5fa 50%,
+       #818cf8 75%,
+       #22d3ee 100%);
+     background-size: 250% 250%;
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+     animation: blueShimmer 3s ease-in-out infinite;
+     filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.6));
+   }
+   
+   .start-sub {
+     font-family: var(--font-serif);
+     font-style: italic;
+     font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+     color: var(--text-soft);
+     letter-spacing: 0.12em;
+     opacity: 0.9;
+   }
+   
+   .start-btn {
+     display: inline-flex;
+     align-items: center;
+     gap: 0.8rem;
+     margin-top: 1rem;
+     padding: 1.15rem 2.8rem;
+     font-family: var(--font-impact);
+     font-weight: 900;
+     font-size: 1rem;
+     letter-spacing: 0.18em;
+     text-transform: uppercase;
+     color: #041029;
+     background: linear-gradient(135deg, #a5f3fc 0%, #38bdf8 50%, #60a5fa 100%);
+     border: none;
+     border-radius: 999px;
+     cursor: pointer;
+     box-shadow:
+       0 0 40px rgba(56, 189, 248, 0.7),
+       0 0 80px rgba(96, 165, 250, 0.4),
+       inset 0 1px 0 rgba(255, 255, 255, 0.5);
+     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+     animation: btnPulse 1.8s ease-in-out infinite;
+     position: relative;
+     overflow: hidden;
+   }
+   
+   .start-btn::before {
+     content: '';
+     position: absolute;
+     inset: 0;
+     background: linear-gradient(120deg,
+       transparent 30%,
+       rgba(255, 255, 255, 0.5) 50%,
+       transparent 70%);
+     transform: translateX(-100%);
+     transition: transform 0.6s ease;
+   }
+   .start-btn:hover::before {
+     transform: translateX(100%);
+   }
+   
+   .start-btn:hover {
+     transform: scale(1.06);
+     box-shadow:
+       0 0 60px rgba(56, 189, 248, 1),
+       0 0 120px rgba(96, 165, 250, 0.6),
+       inset 0 1px 0 rgba(255, 255, 255, 0.6);
+   }
+   .start-btn:active {
+     transform: scale(0.98);
+   }
+   
+   @keyframes btnPulse {
+     0%, 100% {
+       box-shadow:
+         0 0 40px rgba(56, 189, 248, 0.7),
+         0 0 80px rgba(96, 165, 250, 0.4),
+         inset 0 1px 0 rgba(255, 255, 255, 0.5);
+     }
+     50% {
+       box-shadow:
+         0 0 65px rgba(56, 189, 248, 1),
+         0 0 120px rgba(96, 165, 250, 0.6),
+         inset 0 1px 0 rgba(255, 255, 255, 0.6);
+     }
+   }
+   
+   .start-icon { font-size: 0.8rem; }
+   
+   .start-hint {
+     margin-top: 0.6rem;
+     font-family: var(--font-serif);
+     font-size: 0.75rem;
+     color: var(--text-dim);
+     letter-spacing: 0.25em;
+     opacity: 0.8;
+   }
+   
+   /* ------------------------------------------------------------
+      FADE OUT FINAL
+      ------------------------------------------------------------ */
+   body.fade-out::after {
+     content: '';
+     position: fixed;
+     inset: 0;
+     background: var(--bg-0);
+     z-index: 60;
+     animation: fadeOutFinal 1.2s ease forwards;
+     pointer-events: none;
+   }
+   @keyframes fadeOutFinal {
+     from { opacity: 0; }
+     to   { opacity: 1; }
+   }
+   
+   /* ------------------------------------------------------------
+      ZOOM IMPACT
+      ------------------------------------------------------------ */
+   .scene.zoom-in .scene-inner {
+     animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   @keyframes zoomIn {
+     0%   { transform: scale(1.18); opacity: 0; filter: blur(8px); }
+     100% { transform: scale(1); opacity: 1; filter: blur(0); }
+   }
+   
+   /* ------------------------------------------------------------
+      RESPONSIVE
+      ------------------------------------------------------------ */
+   @media (max-width: 600px) {
+     .rapid-words { gap: 0.9rem; }
+     .scene-4 .punch-text { letter-spacing: 0; }
+     .start-btn { padding: 1rem 2rem; font-size: 0.85rem; }
+   }
