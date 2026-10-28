@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iphax — Expérience Visuelle</title>
+    <title>Iphax — Publicité Animée</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { 
-            height: 100%; 
-            background: #020105; 
+        body { 
+            background: #05070a; 
             overflow: hidden; 
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
+        /* Format vertical 9:16 pour Insta/TikTok */
         #stage {
             position: relative;
             width: min(100vw, 56.25vh);
             height: min(177.78vw, 100vh);
             overflow: hidden;
-            background: #020105;
+            background: #000;
+            box-shadow: 0 0 50px rgba(0,255,157,0.2);
         }
 
         canvas { 
@@ -29,40 +31,9 @@
             inset: 0; 
             width: 100%; 
             height: 100%; 
-            display: block; 
         }
 
-        /* Fallback HTML si le WebGL plante (au cas où) */
-        .html-fallback {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 10%;
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 1s;
-        }
-        .html-fallback.active {
-            opacity: 1;
-        }
-        .html-fallback h1 {
-            font-size: clamp(30px, 8vw, 60px);
-            color: #fff;
-            font-weight: 900;
-            text-shadow: 0 0 20px #00ff9d;
-        }
-        .html-fallback p {
-            color: #00ff9d;
-            font-size: clamp(16px, 4vw, 24px);
-            margin-top: 20px;
-        }
-
-        /* Bouton CTA */
+        /* Bouton pour le lien final */
         .ui-layer {
             position: absolute;
             inset: 0;
@@ -70,41 +41,37 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
-            padding-bottom: 15%;
+            padding-bottom: 12%;
             pointer-events: none;
             z-index: 10;
         }
 
         .cta-btn {
             display: inline-block;
-            padding: 18px 40px;
-            background: rgba(0, 255, 157, 0.1);
-            border: 2px solid #00ff9d;
-            color: #00ff9d;
+            padding: 16px 36px;
+            background: #00ff9d;
+            color: #05070a;
             text-decoration: none;
             font-weight: 800;
-            font-size: clamp(16px, 4vw, 22px);
+            font-size: clamp(14px, 4vw, 20px);
             border-radius: 50px;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            backdrop-filter: blur(10px);
             transition: all 0.5s ease;
             opacity: 0;
             transform: translateY(20px);
             pointer-events: none;
+            box-shadow: 0 0 30px rgba(0,255,157,0.5);
         }
 
         .cta-btn.visible {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
-            box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
         }
 
         .cta-btn:hover {
-            background: #00ff9d;
-            color: #020105;
-            box-shadow: 0 0 50px rgba(0, 255, 157, 0.6);
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -113,241 +80,236 @@
     <div id="stage">
         <canvas id="gl"></canvas>
         
-        <!-- Fallback si WebGL ne marche pas -->
-        <div class="html-fallback" id="fallback">
-            <h1>L'aide est un droit,<br>pas un luxe.</h1>
-            <p>Découvre Iphax</p>
-        </div>
-
         <div class="ui-layer">
             <a href="https://Iphax-fr.vercel.app" target="_blank" class="cta-btn" id="cta">
-                Rejoindre Iphax
+                Découvrir Iphax →
             </a>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gl');
+        const gl = canvas.getContext('webgl', { alpha: false, premultipliedAlpha: false });
         const cta = document.getElementById('cta');
-        const fallback = document.getElementById('fallback');
-        
-        // On essaie de récupérer le contexte WebGL
-        let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
-        if (!gl) {
-            // Si pas de WebGL, on affiche le fallback HTML animé
-            fallback.classList.add('active');
-            // Animation simple du fallback
-            setInterval(() => {
-                cta.classList.toggle('visible');
-            }, 3000);
-        } else {
-            // === TOUT LE CODE WEBGL ===
+        // Textes des scènes (Tu peux les modifier ici !)
+        const SCENES = [
+            "L'aide est un droit,\npas un luxe.",
+            "Personne ne devrait\navoir honte\nde demander de l'aide.",
+            "Iphax est là pour toi.\nÉcoute, soutien,\nservices pédiatriques.",
+            "Rejoins Iphax."
+        ];
+
+        // Création d'un canvas 2D invisible pour dessiner le texte
+        const textCanvas = document.createElement('canvas');
+        const ctx = textCanvas.getContext('2d');
+        textCanvas.width = 1080;
+        textCanvas.height = 1920;
+
+        // Texture WebGL
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        // Fonction pour mettre à jour le texte dans la texture
+        function updateTextTexture(text) {
+            ctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
             
-            let width, height;
-            function resize() {
-                const rect = canvas.getBoundingClientRect();
-                const dpr = Math.min(window.devicePixelRatio, 2);
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                gl.viewport(0, 0, canvas.width, canvas.height);
-            }
-            window.addEventListener('resize', resize);
+            // Style du texte
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold 80px 'Segoe UI', system-ui, sans-serif";
+            ctx.shadowColor = "#00ff9d";
+            ctx.shadowBlur = 20;
 
-            const vsSource = `
-                attribute vec2 a_position;
-                void main() {
-                    gl_Position = vec4(a_position, 0.0, 1.0);
-                }
-            `;
+            // Gestion des sauts de ligne
+            const lines = text.split('\n');
+            const lineHeight = 100;
+            const startY = (textCanvas.height / 2) - ((lines.length - 1) * lineHeight) / 2;
 
-            // Shader ultra-simplifié : On dessine des FORMES (SDF) qui ressemblent à du texte,
-            // et on laisse le fluide faire le reste. Pas de conditions complexes.
-            const fsSource = `
-                precision highp float;
-                uniform vec2 u_resolution;
-                uniform float u_time;
-                uniform int u_sceneIndex;
-                uniform float u_sceneProgress;
-                uniform float u_mood;
+            lines.forEach((line, index) => {
+                ctx.fillText(line, textCanvas.width / 2, startY + (index * lineHeight));
+            });
 
-                // --- FONCTIONS DE BRUIT ---
-                float hash(vec2 p) {
-                    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-                }
-                float noise(vec2 p) {
-                    vec2 i = floor(p);
-                    vec2 f = fract(p);
-                    vec2 u = f * f * (3.0 - 2.0 * f);
-                    return mix(mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
-                               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
-                }
-                float fbm(vec2 p) {
-                    float v = 0.0, a = 0.5;
-                    for (int i = 0; i < 4; i++) {
-                        v += a * noise(p);
-                        p *= 2.0;
-                        a *= 0.5;
-                    }
-                    return v;
-                }
-
-                // --- FONCTION POUR DESSINER UNE LETTRE (Approche SDF simple) ---
-                // On utilise des boîtes englobantes pour simuler le texte.
-                float drawTextMask(vec2 uv) {
-                    float d = 100.0;
-                    
-                    // Scène 1 : "L'AIDE" (3 blocs)
-                    if (u_sceneIndex == 0) {
-                        d = min(d, length(uv - vec2(0.3, 0.5)) - 0.15);
-                        d = min(d, length(uv - vec2(0.5, 0.5)) - 0.15);
-                        d = min(d, length(uv - vec2(0.7, 0.5)) - 0.15);
-                    }
-                    // Scène 2 : "UN DROIT" (2 blocs)
-                    else if (u_sceneIndex == 1) {
-                        d = min(d, length(uv - vec2(0.4, 0.5)) - 0.2);
-                        d = min(d, length(uv - vec2(0.6, 0.5)) - 0.2);
-                    }
-                    // Scène 3 : "PAS UN LUXE" (3 blocs)
-                    else if (u_sceneIndex == 2) {
-                        d = min(d, length(uv - vec2(0.25, 0.5)) - 0.15);
-                        d = min(d, length(uv - vec2(0.5, 0.5)) - 0.15);
-                        d = min(d, length(uv - vec2(0.75, 0.5)) - 0.15);
-                    }
-                    // Scène 4 : "IPHAX" (1 grand bloc)
-                    else if (u_sceneIndex == 3) {
-                        d = length(uv - vec2(0.5, 0.5)) - 0.25;
-                    }
-
-                    return d;
-                }
-
-                void main() {
-                    vec2 uv = gl_FragCoord.xy / u_resolution;
-                    // Corriger le ratio pour le mobile
-                    float aspect = u_resolution.x / u_resolution.y;
-                    vec2 p = vec2(uv.x * aspect, uv.y) * 3.0;
-                    
-                    float t = u_time * 0.3;
-
-                    // 1. LE FOND FLUIDE
-                    vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t));
-                    vec2 r = vec2(fbm(p + 4.0 * q + vec2(1.7, 9.2) + 0.15 * t), fbm(p + 4.0 * q + vec2(8.3, 2.8) - 0.126 * t));
-                    float f = fbm(p + 4.0 * r);
-
-                    vec3 cold = vec3(0.10, 0.18, 0.38);
-                    vec3 warm = vec3(0.0, 1.0, 0.61);
-                    vec3 color = mix(cold, warm, u_mood * f);
-
-                    // 2. LE TEXTE (Masque de distance)
-                    vec2 textUv = vec2(uv.x * aspect, uv.y);
-                    
-                    // Distorsion du texte
-                    textUv += (vec2(f, fbm(p + 4.0 * r)) - 0.5) * 0.1 * (1.0 - u_sceneProgress);
-                    
-                    float d = drawTextMask(textUv);
-                    
-                    // 3. RENDU DU TEXTE
-                    float glow = smoothstep(0.1, 0.0, d) * 2.0;
-                    float core = smoothstep(0.03, 0.0, d);
-                    
-                    vec3 textColor = vec3(1.0); // Texte blanc
-                    if (u_mood > 0.5) textColor = vec3(0.0, 1.0, 0.61); // Devient vert
-
-                    // Appliquer le texte sur le fond
-                    color = mix(color, textColor, glow);
-                    color = mix(color, vec3(1.0), core);
-
-                    // Flash d'apparition
-                    float flash = exp(-u_sceneProgress * 8.0) * 0.5;
-                    color += flash * textColor;
-
-                    gl_FragColor = vec4(color, 1.0);
-                }
-            `;
-
-            function createShader(gl, type, source) {
-                const shader = gl.createShader(type);
-                gl.shaderSource(shader, source);
-                gl.compileShader(shader);
-                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                    console.error('Shader error:', gl.getShaderInfoLog(shader));
-                    return null;
-                }
-                return shader;
-            }
-
-            const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
-            const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-            
-            if (vertexShader && fragmentShader) {
-                const program = gl.createProgram();
-                gl.attachShader(program, vertexShader);
-                gl.attachShader(program, fragmentShader);
-                gl.linkProgram(program);
-                
-                if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                    gl.useProgram(program);
-
-                    const positionBuffer = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-                    
-                    const positionLocation = gl.getAttribLocation(program, 'a_position');
-                    gl.enableVertexAttribArray(positionLocation);
-                    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-                    const uResolution = gl.getUniformLocation(program, 'u_resolution');
-                    const uTime = gl.getUniformLocation(program, 'u_time');
-                    const uSceneIndex = gl.getUniformLocation(program, 'u_sceneIndex');
-                    const uSceneProgress = gl.getUniformLocation(program, 'u_sceneProgress');
-                    const uMood = gl.getUniformLocation(program, 'u_mood');
-
-                    const startTime = performance.now();
-                    const SCENE_DURATION = 6000; // 6 secondes
-                    const TOTAL_SCENES = 4;
-                    const MOODS = [0.2, 0.5, 0.8, 1.0]; 
-                    let currentMood = 0.0;
-
-                    resize();
-
-                    function render(now) {
-                        const time = (now - startTime) / 1000;
-                        
-                        const totalTime = SCENE_DURATION * TOTAL_SCENES;
-                        const loopedTime = (now - startTime) % totalTime;
-                        
-                        const sceneIndex = Math.floor(loopedTime / SCENE_DURATION);
-                        const sceneProgress = (loopedTime % SCENE_DURATION) / SCENE_DURATION;
-
-                        // Gestion du bouton
-                        if (sceneIndex === 3 && sceneProgress > 0.5) {
-                            cta.classList.add('visible');
-                        } else {
-                            cta.classList.remove('visible');
-                        }
-
-                        currentMood += (MOODS[sceneIndex] - currentMood) * 0.05;
-
-                        gl.uniform2f(uResolution, canvas.width, canvas.height);
-                        gl.uniform1f(uTime, time);
-                        gl.uniform1i(uSceneIndex, sceneIndex);
-                        gl.uniform1f(uSceneProgress, sceneProgress);
-                        gl.uniform1f(uMood, currentMood);
-
-                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-                        requestAnimationFrame(render);
-                    }
-
-                    requestAnimationFrame(render);
-                } else {
-                    console.error("Program link error");
-                    fallback.classList.add('active');
-                }
-            } else {
-                fallback.classList.add('active');
-            }
+            // Envoi au WebGL
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
         }
+
+        // --- SHADERS ---
+        const vsSource = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_uv = a_position * 0.5 + 0.5;
+            }
+        `;
+
+        const fsSource = `
+            precision highp float;
+            uniform vec2 u_resolution;
+            uniform float u_time;
+            uniform sampler2D u_texture;
+            uniform float u_opacity; // Fondu du texte
+
+            // Bruit pour le fond
+            float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+            float noise(vec2 p) {
+                vec2 i = floor(p); vec2 f = fract(p);
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+                           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+            }
+            float fbm(vec2 p) {
+                float v = 0.0, a = 0.5;
+                for (int i = 0; i < 4; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+                return v;
+            }
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / u_resolution;
+                // Corriger l'aspect ratio
+                float aspect = u_resolution.x / u_resolution.y;
+                vec2 p = vec2(uv.x * aspect, uv.y) * 4.0;
+                
+                float t = u_time * 0.2;
+
+                // 1. Le fond fluide organique
+                vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t));
+                vec2 r = vec2(fbm(p + 4.0 * q + vec2(1.7, 9.2) + 0.15 * t), fbm(p + 4.0 * q + vec2(8.3, 2.8) - 0.126 * t));
+                float f = fbm(p + 4.0 * r);
+
+                vec3 colA = vec3(0.02, 0.05, 0.1); // Bleu très foncé
+                vec3 colB = vec3(0.0, 0.4, 0.2);   // Vert sombre
+                vec3 bgColor = mix(colA, colB, f);
+
+                // 2. Le texte (Texture)
+                // On récupère la couleur du texte dessiné en 2D
+                vec4 textColor = texture2D(u_texture, uv);
+                
+                // On ajoute un effet de distorsion sur les coordonnées du texte
+                vec2 distordedUv = uv + (vec2(f, fbm(p + 4.0 * r)) - 0.5) * 0.05;
+                vec4 textDistorded = texture2D(u_texture, distordedUv);
+
+                // On combine le texte net et le texte distordu selon l'opacité
+                float textMask = mix(textDistorded.r, textColor.r, u_opacity) * u_opacity;
+
+                // Mélange final
+                vec3 finalColor = mix(bgColor, vec3(1.0), textMask);
+                
+                // Halo vert autour du texte
+                finalColor += vec3(0.0, 1.0, 0.6) * textMask * 0.5;
+
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+
+        // Compilation
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+                return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        gl.useProgram(program);
+
+        // Buffer
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        const positionLocation = gl.getAttribLocation(program, 'a_position');
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        // Uniforms
+        const uResolution = gl.getUniformLocation(program, 'u_resolution');
+        const uTime = gl.getUniformLocation(program, 'u_time');
+        const uTexture = gl.getUniformLocation(program, 'u_texture');
+        const uOpacity = gl.getUniformLocation(program, 'u_opacity');
+
+        // Resize
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * Math.min(window.devicePixelRatio, 2);
+            canvas.height = rect.height * Math.min(window.devicePixelRatio, 2);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- LOGIQUE D'ANIMATION ---
+        let sceneIndex = 0;
+        let sceneStartTime = performance.now();
+        const SCENE_DURATION = 5000; // 5 secondes par scène
+        let currentOpacity = 0;
+
+        // Initialiser le premier texte
+        updateTextTexture(SCENES[0]);
+
+        const startTime = performance.now();
+
+        function render(now) {
+            const time = (now - startTime) / 1000;
+            const elapsed = now - sceneStartTime;
+
+            // Gestion des scènes
+            if (elapsed > SCENE_DURATION) {
+                sceneIndex = (sceneIndex + 1) % SCENES.length;
+                sceneStartTime = now;
+                updateTextTexture(SCENES[sceneIndex]);
+                
+                // Cacher le bouton à chaque changement de scène
+                cta.classList.remove('visible');
+            }
+
+            // Animation d'opacité (Fondu entrant et sortant)
+            const progress = elapsed / SCENE_DURATION;
+            
+            if (progress < 0.2) {
+                // Fondu entrant
+                currentOpacity = progress / 0.2;
+            } else if (progress > 0.8) {
+                // Fondu sortant
+                currentOpacity = 1.0 - ((progress - 0.8) / 0.2);
+            } else {
+                currentOpacity = 1.0;
+            }
+
+            // Afficher le bouton à la dernière scène
+            if (sceneIndex === SCENES.length - 1 && progress > 0.5) {
+                cta.classList.add('visible');
+            }
+
+            // Rendu
+            gl.uniform2f(uResolution, canvas.width, canvas.height);
+            gl.uniform1f(uTime, time);
+            gl.uniform1f(uOpacity, currentOpacity);
+            
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.uniform1i(uTexture, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+        }
+
+        requestAnimationFrame(render);
+
     </script>
 </body>
 </html>
